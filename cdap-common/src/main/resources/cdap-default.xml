@@ -637,6 +637,11 @@
   </property>
 
   <property>
+    <name>data.tx.prune.enable</name>
+    <value>true</value>
+  </property>
+
+  <property>
     <name>dataset.data.dir</name>
     <value>data</value>
     <description>
