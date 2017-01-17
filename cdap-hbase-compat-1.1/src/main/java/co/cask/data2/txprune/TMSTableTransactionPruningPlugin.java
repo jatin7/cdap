@@ -16,18 +16,24 @@
 
 package co.cask.data2.txprune;
 
-import co.cask.cdap.data2.transaction.coprocessor.hbase11.DefaultTransactionProcessor;
+import co.cask.cdap.data2.transaction.messaging.coprocessor.hbase11.MessageTableRegionObserver;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.tephra.hbase.txprune.HBaseTransactionPruningPlugin;
-import org.apache.tephra.txprune.TransactionPruningPlugin;
+
+import java.io.IOException;
 
 /**
- * {@link TransactionPruningPlugin} for CDAP Datasets.
+ * TMS Table Transaction Pruning Plugin.
  */
-public class DefaultHBaseTransactionPruningPlugin extends HBaseTransactionPruningPlugin {
+public class TMSTableTransactionPruningPlugin extends HBaseTransactionPruningPlugin {
+
+  @Override
+  public long fetchPruneUpperBound(long time, long inactiveTransactionBound) throws IOException {
+    return super.fetchPruneUpperBound(time, inactiveTransactionBound);
+  }
 
   @Override
   protected boolean isTransactionalTable(HTableDescriptor tableDescriptor) {
-    return tableDescriptor.hasCoprocessor(DefaultTransactionProcessor.class.getName());
+    return tableDescriptor.hasCoprocessor(MessageTableRegionObserver.class.getName());
   }
 }
