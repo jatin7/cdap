@@ -25,12 +25,11 @@ import co.cask.cdap.app.store.RuntimeStore;
 import co.cask.cdap.app.store.Store;
 import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.namespace.NamespaceAdmin;
 import co.cask.cdap.common.namespace.NamespaceQueryAdmin;
 import co.cask.cdap.common.runtime.RuntimeModule;
-import co.cask.cdap.common.security.DefaultUGIProvider;
-import co.cask.cdap.common.security.UGIProvider;
-import co.cask.cdap.common.security.UnsupportedUGIProvider;
 import co.cask.cdap.common.twill.MasterServiceManager;
 import co.cask.cdap.common.utils.Networks;
 import co.cask.cdap.config.guice.ConfigStoreModule;
@@ -108,6 +107,9 @@ import co.cask.cdap.route.store.LocalRouteStore;
 import co.cask.cdap.route.store.RouteStore;
 import co.cask.cdap.route.store.ZKRouteStore;
 import co.cask.cdap.security.auth.context.AuthenticationContextModules;
+import co.cask.cdap.security.impersonation.DefaultUGIProvider;
+import co.cask.cdap.security.impersonation.UGIProvider;
+import co.cask.cdap.security.impersonation.UnsupportedUGIProvider;
 import co.cask.http.HttpHandler;
 import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
@@ -341,6 +343,7 @@ public final class AppFabricServiceRuntimeModule extends RuntimeModule {
       bind(RuntimeStore.class).to(DefaultStore.class);
       bind(ArtifactStore.class).in(Scopes.SINGLETON);
       bind(ProgramLifecycleService.class).in(Scopes.SINGLETON);
+      bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
 
       install(new PrivateModule() {
         @Override

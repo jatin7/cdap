@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2016 Cask Data, Inc.
+ * Copyright © 2014-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,6 +18,7 @@ package co.cask.cdap.common.kerberos;
 
 import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
+import co.cask.cdap.common.conf.SConfiguration;
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authentication.util.KerberosUtil;
@@ -166,5 +167,68 @@ public final class SecurityUtil {
           }
         }, delaySec, delaySec, TimeUnit.SECONDS);
     }
+  }
+
+  /**
+   * Helper to create a {@link KerberosPrincipal} from given principal string.
+   * <p>
+   * Supports two Kerberos name types:
+   * <ul>
+   * <li>KRB_NT_PRINCIPAL:  Just the name of the principal as in DCE, or for users. For example: alice@REALM</li>
+   * <li>KRB_NT_SRV_HST:  Service with host name as instance(telnet, rcommands).
+   * For example alice/hostname@REALM
+   * </li>
+   * </ul>
+   * Refer to <a href=https://tools.ietf.org/html/rfc4120#section-7.5.8>Name Types</a> documentation for details on
+   * Kerberos Name Types.
+   * </p>
+   *
+   * @param principal the Kerberos principal string
+   * @return {@link KerberosPrincipal} from the given principal
+   * @throws IllegalArgumentException if a {@link KerberosPrincipal} cannot be created from the given principal string
+   */
+  public static KerberosPrincipal parsePrincipal(String principal) {
+    Matcher match = KERBEROS_PRINCIPAL.matcher(principal);
+    validatePrincipal(principal, match);
+    String hostName = match.group(3);
+    if (hostName == null) {
+      return new KerberosPrincipal(principal);
+    } else {
+      return new KerberosPrincipal(principal, KerberosPrincipal.KRB_NT_SRV_HST);
+    }
+  }
+
+  /**
+   * Validates if a valid {@link KerberosPrincipal} can be created from the given principal string.
+   * <p>
+   * Supports two Kerberos name types:
+   * <ul>
+   * <li>KRB_NT_PRINCIPAL:  Just the name of the principal as in DCE, or for users. For example: alice@REALM</li>
+   * <li>KRB_NT_SRV_HST:  Service with host name as instance(telnet, rcommands).
+   * For example alice/hostname@REALM
+   * </li>
+   * </ul>
+   * Refer to <a href=https://tools.ietf.org/html/rfc4120#section-7.5.8>Name Types</a> documentation for details on
+   * Kerberos Name Types.
+   * </p>
+   *
+   * @param principal the principal which needs to be validated
+   * @throws IllegalArgumentException if the given principal is not valid
+   */
+  public static void validatePrincipal(String principal) {
+    validatePrincipal(principal, KERBEROS_PRINCIPAL.matcher(principal));
+  }
+
+  private static void validatePrincipal(String principal, Matcher match) {
+    if (!match.matches()) {
+      throw new IllegalArgumentException(String.format("Malformed Kerberos Principal: %s. Note the supported " +
+                                                         "Kerberos Name Types are KRB_NT_PRINCIPAL (ex: alice@REALM) " +
+                                                         "and KRB_NT_SRV_HST (ex: alice/hostname@REALM)", principal));
+    }
+  }
+  public static String getKeytabURIforPrincipal(String principal, SConfiguration sConf) throws IOException {
+    String confPath = sConf.get(Constants.Security.KEYTAB_PATH);
+    String name = new KerberosName(principal).getShortName();
+    return confPath.replace(Constants.USER_NAME_SPECIFIER, name);
   }
 }

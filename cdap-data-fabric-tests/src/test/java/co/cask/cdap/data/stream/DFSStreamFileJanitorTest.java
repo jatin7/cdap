@@ -22,14 +22,15 @@ import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.ZKClientModule;
 import co.cask.cdap.common.io.RootLocationFactory;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerStore;
 import co.cask.cdap.common.namespace.DefaultNamespacedLocationFactory;
 import co.cask.cdap.common.namespace.InMemoryNamespaceClient;
 import co.cask.cdap.common.namespace.NamespaceAdmin;
 import co.cask.cdap.common.namespace.NamespaceQueryAdmin;
 import co.cask.cdap.common.namespace.NamespacedLocationFactory;
 import co.cask.cdap.common.namespace.SimpleNamespaceQueryAdmin;
-import co.cask.cdap.common.security.RemoteUGIProvider;
-import co.cask.cdap.common.security.UGIProvider;
 import co.cask.cdap.data.file.FileWriter;
 import co.cask.cdap.data.runtime.DataFabricModules;
 import co.cask.cdap.data.runtime.DataSetsModules;
@@ -48,7 +49,10 @@ import co.cask.cdap.proto.id.StreamId;
 import co.cask.cdap.security.auth.context.AuthenticationContextModules;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationTestModule;
+import co.cask.cdap.security.impersonation.RemoteUGIProvider;
+import co.cask.cdap.security.impersonation.UGIProvider;
 import co.cask.cdap.store.InMemoryNamespaceStore;
+import co.cask.cdap.store.InMemoryOwnerStore;
 import co.cask.cdap.store.NamespaceStore;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -101,6 +105,7 @@ public class DFSStreamFileJanitorTest extends StreamFileJanitorTestBase {
           bind(NamespaceAdmin.class).toInstance(namespaceAdmin);
           bind(NamespaceQueryAdmin.class).to(SimpleNamespaceQueryAdmin.class);
           bind(UGIProvider.class).to(RemoteUGIProvider.class);
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
         }
       },
       new TransactionMetricsModule(),
@@ -110,6 +115,7 @@ public class DFSStreamFileJanitorTest extends StreamFileJanitorTestBase {
         @Override
         protected void configure() {
           bind(MetadataStore.class).to(NoOpMetadataStore.class);
+          bind(OwnerStore.class).to(InMemoryOwnerStore.class);
         }
       }),
       new ExploreClientModule(),

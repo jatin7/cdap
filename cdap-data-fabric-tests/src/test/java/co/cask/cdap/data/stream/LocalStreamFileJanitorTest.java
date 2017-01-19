@@ -22,11 +22,11 @@ import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.NonCustomLocationUnitTestModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.namespace.NamespaceAdmin;
 import co.cask.cdap.common.namespace.NamespacedLocationFactory;
 import co.cask.cdap.common.namespace.guice.NamespaceClientRuntimeModule;
-import co.cask.cdap.common.security.UGIProvider;
-import co.cask.cdap.common.security.UnsupportedUGIProvider;
 import co.cask.cdap.data.file.FileWriter;
 import co.cask.cdap.data.runtime.DataFabricLevelDBModule;
 import co.cask.cdap.data.runtime.DataSetsModules;
@@ -44,6 +44,8 @@ import co.cask.cdap.proto.id.StreamId;
 import co.cask.cdap.security.auth.context.AuthenticationContextModules;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationTestModule;
+import co.cask.cdap.security.impersonation.UGIProvider;
+import co.cask.cdap.security.impersonation.UnsupportedUGIProvider;
 import co.cask.cdap.store.InMemoryNamespaceStore;
 import co.cask.cdap.store.NamespaceStore;
 import com.google.inject.AbstractModule;
@@ -100,6 +102,7 @@ public class LocalStreamFileJanitorTest extends StreamFileJanitorTestBase {
           // We don't need notification in this test, hence inject an no-op one
           bind(NotificationFeedManager.class).to(NoOpNotificationFeedManager.class);
           bind(NamespaceStore.class).to(InMemoryNamespaceStore.class);
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
         }
       }
     );

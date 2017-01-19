@@ -21,10 +21,10 @@ import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.NonCustomLocationUnitTestModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.namespace.guice.NamespaceClientRuntimeModule;
 import co.cask.cdap.common.queue.QueueName;
-import co.cask.cdap.common.security.UGIProvider;
-import co.cask.cdap.common.security.UnsupportedUGIProvider;
 import co.cask.cdap.data.runtime.DataFabricLocalModule;
 import co.cask.cdap.data.runtime.DataFabricModules;
 import co.cask.cdap.data.runtime.DataSetsModules;
@@ -44,6 +44,8 @@ import co.cask.cdap.proto.id.NamespaceId;
 import co.cask.cdap.security.auth.context.AuthenticationContextModules;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationTestModule;
+import co.cask.cdap.security.impersonation.UGIProvider;
+import co.cask.cdap.security.impersonation.UnsupportedUGIProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -83,8 +85,15 @@ public class LocalQueueTest extends QueueTest {
       new DiscoveryRuntimeModule().getStandaloneModules(),
       new AuthorizationTestModule(),
       new AuthorizationEnforcementModule().getInMemoryModules(),
+      new NamespaceClientRuntimeModule().getStandaloneModules(),
       new AuthenticationContextModules().getMasterModule(),
       new DataSetsModules().getStandaloneModules(),
+      new AbstractModule() {
+        @Override
+        protected void configure() {
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
+        }
+      },
       new DataFabricLocalModule());
     // transaction manager is a "service" and must be started
     transactionManager = injector.getInstance(TransactionManager.class);
@@ -118,6 +127,7 @@ public class LocalQueueTest extends QueueTest {
             bind(StreamMetaStore.class).to(InMemoryStreamMetaStore.class);
             bind(NotificationFeedManager.class).to(NoOpNotificationFeedManager.class);
             bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
+            bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
           }
         }));
     QueueClientFactory factory = injector.getInstance(QueueClientFactory.class);

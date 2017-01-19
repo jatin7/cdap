@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2016 Cask Data, Inc.
+ * Copyright © 2015-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -30,8 +30,6 @@ import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.kerberos.SecurityUtil;
 import co.cask.cdap.common.namespace.NamespaceAdmin;
 import co.cask.cdap.common.security.AuthEnforce;
-import co.cask.cdap.common.security.ImpersonationInfo;
-import co.cask.cdap.common.security.Impersonator;
 import co.cask.cdap.data2.dataset2.DatasetFramework;
 import co.cask.cdap.proto.Id;
 import co.cask.cdap.proto.NamespaceConfig;
@@ -42,6 +40,8 @@ import co.cask.cdap.proto.id.InstanceId;
 import co.cask.cdap.proto.id.NamespaceId;
 import co.cask.cdap.proto.security.Action;
 import co.cask.cdap.proto.security.Principal;
+import co.cask.cdap.security.impersonation.ImpersonationInfo;
+import co.cask.cdap.security.impersonation.Impersonator;
 import co.cask.cdap.security.spi.authentication.AuthenticationContext;
 import co.cask.cdap.security.spi.authorization.AuthorizationEnforcer;
 import co.cask.cdap.security.spi.authorization.PrivilegesManager;
@@ -155,19 +155,18 @@ public final class DefaultNamespaceAdmin implements NamespaceAdmin {
       throw new NamespaceAlreadyExistsException(namespace);
     }
 
-    // if this namespace has custom mapping then validate the given custom mapping
+    // If this namespace has custom mapping then validate the given custom mapping
     if (hasCustomMapping(metadata)) {
       validateCustomMapping(metadata);
     }
 
-    // Namespace can be created. Check if the user is authorized now.
+    // Namespace can be created. Grant all the permissions to the user.
     Principal principal = authenticationContext.getPrincipal();
     privilegesManager.grant(namespace, principal, EnumSet.allOf(Action.class));
     // Also grant the user who will execute programs in this namespace all privileges on the namespace
     String executionUserName;
     if (SecurityUtil.isKerberosEnabled(cConf)) {
-      ImpersonationInfo impersonationInfo = new ImpersonationInfo(metadata, cConf);
-      String namespacePrincipal = impersonationInfo.getPrincipal();
+      String namespacePrincipal = metadata.getConfig().getPrincipal();
       executionUserName = new KerberosName(namespacePrincipal).getShortName();
     } else {
       executionUserName = UserGroupInformation.getCurrentUser().getShortUserName();
@@ -175,12 +174,12 @@ public final class DefaultNamespaceAdmin implements NamespaceAdmin {
     Principal executionUser = new Principal(executionUserName, Principal.PrincipalType.USER);
     privilegesManager.grant(namespace, executionUser, EnumSet.allOf(Action.class));
 
-    // store the meta first in the namespace store because namespacedlocationfactory need to look up location
+    // store the meta first in the namespace store because namespacedLocationFactory needs to look up location
     // mapping from namespace config
     nsStore.create(metadata);
 
     try {
-      impersonator.doAs(metadata, new Callable<Void>() {
+      impersonator.doAs(namespace, new Callable<Void>() {
         @Override
         public Void call() throws Exception {
           storageProviderNamespaceAdmin.get().create(metadata);

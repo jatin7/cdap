@@ -28,9 +28,9 @@ import co.cask.cdap.common.guice.IOModule;
 import co.cask.cdap.common.guice.KafkaClientModule;
 import co.cask.cdap.common.guice.LocationRuntimeModule;
 import co.cask.cdap.common.guice.ZKClientModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.namespace.guice.NamespaceClientRuntimeModule;
-import co.cask.cdap.common.security.CurrentUGIProvider;
-import co.cask.cdap.common.security.UGIProvider;
 import co.cask.cdap.data.runtime.DataFabricModules;
 import co.cask.cdap.data.runtime.DataSetsModules;
 import co.cask.cdap.data.stream.StreamAdminModules;
@@ -51,6 +51,8 @@ import co.cask.cdap.security.auth.context.AuthenticationContextModules;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.RemotePrivilegesManager;
 import co.cask.cdap.security.guice.SecureStoreModules;
+import co.cask.cdap.security.impersonation.CurrentUGIProvider;
+import co.cask.cdap.security.impersonation.UGIProvider;
 import co.cask.cdap.security.spi.authorization.PrivilegesManager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
@@ -122,6 +124,8 @@ public class DistributedProgramRunnableModule {
 
           // bind PrivilegesManager to a remote implementation, so it does not need to instantiate the authorizer
           bind(PrivilegesManager.class).to(RemotePrivilegesManager.class);
+
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
         }
       }
     );

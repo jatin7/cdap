@@ -27,11 +27,11 @@ import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.KafkaClientModule;
 import co.cask.cdap.common.guice.LocationRuntimeModule;
 import co.cask.cdap.common.guice.ZKClientModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.lang.FilterClassLoader;
 import co.cask.cdap.common.metrics.NoOpMetricsCollectionService;
 import co.cask.cdap.common.namespace.guice.NamespaceClientRuntimeModule;
-import co.cask.cdap.common.security.RemoteUGIProvider;
-import co.cask.cdap.common.security.UGIProvider;
 import co.cask.cdap.data.dataset.SystemDatasetInstantiator;
 import co.cask.cdap.data.dataset.SystemDatasetInstantiatorFactory;
 import co.cask.cdap.data.runtime.DataFabricModules;
@@ -54,6 +54,8 @@ import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementService;
 import co.cask.cdap.security.authorization.RemotePrivilegesManager;
 import co.cask.cdap.security.guice.SecureStoreModules;
+import co.cask.cdap.security.impersonation.RemoteUGIProvider;
+import co.cask.cdap.security.impersonation.UGIProvider;
 import co.cask.cdap.security.spi.authentication.AuthenticationContext;
 import co.cask.cdap.security.spi.authorization.AuthorizationEnforcer;
 import co.cask.cdap.security.spi.authorization.PrivilegesManager;
@@ -157,6 +159,7 @@ public class ContextManager {
           bind(MetricsCollectionService.class).to(NoOpMetricsCollectionService.class).in(Scopes.SINGLETON);
           // bind PrivilegesManager to a remote implementation, so it does not need to instantiate the authorizer
           bind(PrivilegesManager.class).to(RemotePrivilegesManager.class);
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
         }
       }
     );

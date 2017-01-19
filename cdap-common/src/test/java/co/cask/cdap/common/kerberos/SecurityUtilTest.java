@@ -18,13 +18,16 @@ package co.cask.cdap.common.kerberos;
 
 import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
+import co.cask.cdap.common.conf.SConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.net.InetAddress;
 
+import static co.cask.cdap.common.kerberos.SecurityUtil.getKeytabURIforUser;
+
 /**
- *
+ * Tests for {@link SecurityUtil}
  */
 public class SecurityUtilTest {
 
@@ -58,5 +61,18 @@ public class SecurityUtilTest {
     noKeyTabConf.unset(Constants.Security.CFG_CDAP_MASTER_KRB_KEYTAB_PATH);
     noKeyTabConf.set(Constants.Security.CFG_CDAP_MASTER_KRB_PRINCIPAL, "prinicpal@REALM.NET");
     Assert.assertFalse(SecurityUtil.isKerberosEnabled(noKeyTabConf));
+  }
+
+  @Test
+  public void testGetKeytabURIforUser() {
+    String user = "alice";
+    String confPath = "/dir1/dir2/${name}/${name}.keytab";
+    String expectedPath = "/dir1/dir2/alice/alice.keytab";
+    SConfiguration sConfiguration = SConfiguration.create();
+    sConfiguration.set(Constants.Security.KEYTAB_PATH, confPath);
+
+    String path = getKeytabURIforUser(user, sConfiguration);
+    Assert.assertEquals(expectedPath, path);
+
   }
 }

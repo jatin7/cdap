@@ -21,10 +21,10 @@ import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.NonCustomLocationUnitTestModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.namespace.NamespacedLocationFactory;
 import co.cask.cdap.common.namespace.guice.NamespaceClientRuntimeModule;
-import co.cask.cdap.common.security.UGIProvider;
-import co.cask.cdap.common.security.UnsupportedUGIProvider;
 import co.cask.cdap.data.runtime.DataFabricLevelDBModule;
 import co.cask.cdap.data.runtime.DataSetsModules;
 import co.cask.cdap.data.runtime.SystemDatasetRuntimeModule;
@@ -47,6 +47,8 @@ import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementService;
 import co.cask.cdap.security.authorization.AuthorizationTestModule;
 import co.cask.cdap.security.authorization.AuthorizerInstantiator;
+import co.cask.cdap.security.impersonation.UGIProvider;
+import co.cask.cdap.security.impersonation.UnsupportedUGIProvider;
 import co.cask.cdap.security.spi.authorization.Authorizer;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -72,6 +74,7 @@ public class LevelDBFileStreamAdminTest extends StreamAdminTest {
   private static InMemoryAuditPublisher inMemoryAuditPublisher;
   private static Authorizer authorizer;
   private static AuthorizationEnforcementService authorizationEnforcementService;
+  private static OwnerAdmin ownerAdmin;
 
   @BeforeClass
   public static void init() throws Exception {
@@ -100,6 +103,7 @@ public class LevelDBFileStreamAdminTest extends StreamAdminTest {
             bind(StreamMetaStore.class).to(InMemoryStreamMetaStore.class);
             bind(NotificationFeedManager.class).to(NoOpNotificationFeedManager.class);
             bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
+            bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
           }
         })
     );
@@ -111,6 +115,7 @@ public class LevelDBFileStreamAdminTest extends StreamAdminTest {
     inMemoryAuditPublisher = injector.getInstance(InMemoryAuditPublisher.class);
     authorizer = injector.getInstance(AuthorizerInstantiator.class).get();
     authorizationEnforcementService = injector.getInstance(AuthorizationEnforcementService.class);
+    ownerAdmin = injector.getInstance(OwnerAdmin.class);
     streamCoordinatorClient.startAndWait();
 
     setupNamespaces(injector.getInstance(NamespacedLocationFactory.class));
@@ -124,6 +129,7 @@ public class LevelDBFileStreamAdminTest extends StreamAdminTest {
     streamCoordinatorClient.stopAndWait();
     txManager.stopAndWait();
   }
+
   @Override
   protected StreamAdmin getStreamAdmin() {
     return streamAdmin;
@@ -142,5 +148,10 @@ public class LevelDBFileStreamAdminTest extends StreamAdminTest {
   @Override
   protected Authorizer getAuthorizer() {
     return authorizer;
+  }
+
+  @Override
+  protected OwnerAdmin getOwnerAdmin() {
+    return ownerAdmin;
   }
 }
