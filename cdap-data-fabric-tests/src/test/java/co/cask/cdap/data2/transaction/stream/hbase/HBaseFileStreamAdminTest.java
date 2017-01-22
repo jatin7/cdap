@@ -21,6 +21,8 @@ import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.NonCustomLocationUnitTestModule;
 import co.cask.cdap.common.guice.ZKClientModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.namespace.NamespaceQueryAdmin;
 import co.cask.cdap.common.namespace.NamespacedLocationFactory;
 import co.cask.cdap.common.namespace.SimpleNamespaceQueryAdmin;
@@ -51,7 +53,6 @@ import co.cask.cdap.security.authorization.AuthorizationEnforcementService;
 import co.cask.cdap.security.authorization.AuthorizationTestModule;
 import co.cask.cdap.security.authorization.AuthorizerInstantiator;
 import co.cask.cdap.security.spi.authorization.Authorizer;
-import co.cask.cdap.store.OwnerStore;
 import co.cask.cdap.test.SlowTests;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -91,7 +92,7 @@ public class HBaseFileStreamAdminTest extends StreamAdminTest {
   private static InMemoryAuditPublisher inMemoryAuditPublisher;
   private static AuthorizationEnforcementService authorizationEnforcementService;
   private static Authorizer authorizer;
-  private static OwnerStore ownerStore;
+  private static OwnerAdmin ownerAdmin;
 
   @BeforeClass
   public static void init() throws Exception {
@@ -128,6 +129,7 @@ public class HBaseFileStreamAdminTest extends StreamAdminTest {
             bind(NotificationFeedManager.class).to(NoOpNotificationFeedManager.class);
             bind(NamespaceQueryAdmin.class).to(SimpleNamespaceQueryAdmin.class);
             bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
+            bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
           }
         })
     );
@@ -141,7 +143,7 @@ public class HBaseFileStreamAdminTest extends StreamAdminTest {
     inMemoryAuditPublisher = injector.getInstance(InMemoryAuditPublisher.class);
     authorizer = injector.getInstance(AuthorizerInstantiator.class).get();
     authorizationEnforcementService = injector.getInstance(AuthorizationEnforcementService.class);
-    ownerStore = injector.getInstance(OwnerStore.class);
+    ownerAdmin = injector.getInstance(OwnerAdmin.class);
 
     setupNamespaces(injector.getInstance(NamespacedLocationFactory.class));
     txManager.startAndWait();
@@ -177,7 +179,7 @@ public class HBaseFileStreamAdminTest extends StreamAdminTest {
   }
 
   @Override
-  protected OwnerStore getOwnerStore() {
-    return ownerStore;
+  protected OwnerAdmin getOwnerAdmin() {
+    return ownerAdmin;
   }
 }

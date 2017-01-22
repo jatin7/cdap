@@ -1,4 +1,5 @@
 /*
+/*
  * Copyright © 2015-2017 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -83,8 +84,8 @@ import co.cask.cdap.security.auth.context.AuthenticationContextModules;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementService;
 import co.cask.cdap.security.guice.SecureStoreModules;
+import co.cask.cdap.store.DefaultOwnerStore;
 import co.cask.cdap.store.NamespaceStore;
-import co.cask.cdap.store.OwnerStore;
 import co.cask.cdap.store.guice.NamespaceStoreModule;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
@@ -566,7 +567,7 @@ public class UpgradeTool {
       // Add all new system dataset introduced in the current release in this block. If no new dataset was introduced
       // then leave this block empty but do not remove block so that it can be used in next release if needed
       // owner meta
-      OwnerStore.setupDatasets(datasetFramework);
+      DefaultOwnerStore.setupDatasets(datasetFramework);
     }
     // metadata and lineage
     DefaultMetadataStore.setupDatasets(datasetFramework);

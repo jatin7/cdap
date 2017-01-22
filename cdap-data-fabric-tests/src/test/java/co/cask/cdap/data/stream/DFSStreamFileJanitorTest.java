@@ -22,6 +22,8 @@ import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.ZKClientModule;
 import co.cask.cdap.common.io.RootLocationFactory;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.namespace.DefaultNamespacedLocationFactory;
 import co.cask.cdap.common.namespace.InMemoryNamespaceClient;
 import co.cask.cdap.common.namespace.NamespaceAdmin;
@@ -101,6 +103,7 @@ public class DFSStreamFileJanitorTest extends StreamFileJanitorTestBase {
           bind(NamespaceAdmin.class).toInstance(namespaceAdmin);
           bind(NamespaceQueryAdmin.class).to(SimpleNamespaceQueryAdmin.class);
           bind(UGIProvider.class).to(RemoteUGIProvider.class);
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
         }
       },
       new TransactionMetricsModule(),

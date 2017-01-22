@@ -156,7 +156,8 @@ public class StreamHandlerTest extends GatewayTestBase {
   @Test
   public void testOwner() throws Exception {
     // Should not be able to create a stream with invalid principal format
-    createStreamWithOwner("streams/ownedStream", HttpResponseStatus.INTERNAL_SERVER_ERROR, "invalidPrincipal");
+    createStreamWithOwner("streams/ownedStream", HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                          "alice/bob/somehost@SOMEKDC.NET");
     // The above failure to store the owner must have failed the stream creation and stream meta should not exists
     HttpURLConnection urlConn = openURL(createStreamInfoURL("ownedStream"), HttpMethod.GET);
     Assert.assertEquals(HttpResponseStatus.NOT_FOUND.getCode(), urlConn.getResponseCode());

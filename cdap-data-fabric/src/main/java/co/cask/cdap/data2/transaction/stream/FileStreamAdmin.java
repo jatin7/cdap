@@ -24,6 +24,7 @@ import co.cask.cdap.common.StreamNotFoundException;
 import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.io.Locations;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.namespace.NamespacedLocationFactory;
 import co.cask.cdap.common.security.ImpersonationUtils;
 import co.cask.cdap.common.security.Impersonator;
@@ -65,7 +66,6 @@ import co.cask.cdap.security.spi.authentication.AuthenticationContext;
 import co.cask.cdap.security.spi.authorization.AuthorizationEnforcer;
 import co.cask.cdap.security.spi.authorization.PrivilegesManager;
 import co.cask.cdap.security.spi.authorization.UnauthorizedException;
-import co.cask.cdap.store.OwnerStore;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -117,7 +117,7 @@ public class FileStreamAdmin implements StreamAdmin {
   private final RuntimeUsageRegistry runtimeUsageRegistry;
   private final LineageWriter lineageWriter;
   private final StreamMetaStore streamMetaStore;
-  private final OwnerStore ownerStore;
+  private final OwnerAdmin ownerAdmin;
   private final ExploreTableNaming tableNaming;
   private final ViewAdmin viewAdmin;
   private final MetadataStore metadataStore;
@@ -138,7 +138,7 @@ public class FileStreamAdmin implements StreamAdmin {
                          RuntimeUsageRegistry runtimeUsageRegistry,
                          LineageWriter lineageWriter,
                          StreamMetaStore streamMetaStore,
-                         OwnerStore ownerStore,
+                         OwnerAdmin ownerAdmin,
                          ExploreTableNaming tableNaming,
                          MetadataStore metadataStore,
                          ViewAdmin viewAdmin,
@@ -156,7 +156,7 @@ public class FileStreamAdmin implements StreamAdmin {
     this.runtimeUsageRegistry = runtimeUsageRegistry;
     this.lineageWriter = lineageWriter;
     this.streamMetaStore = streamMetaStore;
-    this.ownerStore = ownerStore;
+    this.ownerAdmin = ownerAdmin;
     this.tableNaming = tableNaming;
     this.metadataStore = metadataStore;
     this.viewAdmin = viewAdmin;
@@ -337,8 +337,8 @@ public class FileStreamAdmin implements StreamAdmin {
   public StreamProperties getProperties(StreamId streamId) throws Exception {
     // User should have any access on the stream to read its properties
     ensureAccess(streamId);
-    String ownerPrincipal = ownerStore.getOwner(streamId) == null ? null :
-      ownerStore.getOwner(streamId).getPrincipal();
+    String ownerPrincipal = ownerAdmin.getOwner(streamId) == null ? null :
+      ownerAdmin.getOwner(streamId).getPrincipal();
     StreamConfig config = getConfig(streamId);
     StreamSpecification spec = streamMetaStore.getStream(streamId);
     return new StreamProperties(config.getTTL(), config.getFormat(), config.getNotificationThresholdMB(),
@@ -359,8 +359,8 @@ public class FileStreamAdmin implements StreamAdmin {
 
     Preconditions.checkArgument(streamLocation.isDirectory(), "Stream '%s' does not exist.", streamId);
     boolean equals = Objects.equals(properties.getOwnerPrincipal(),
-                                    ownerStore.getOwner(streamId) == null ? null :
-                                      ownerStore.getOwner(streamId).getPrincipal());
+                                    ownerAdmin.getOwner(streamId) == null ? null :
+                                      ownerAdmin.getOwner(streamId).getPrincipal());
     Preconditions.checkArgument(equals,
                                 String.format("Updating %s is not supported.", Constants.Security.OWNER_PRINCIPAL));
 
@@ -478,7 +478,7 @@ public class FileStreamAdmin implements StreamAdmin {
           // If an owner was provided then store it in owner store.
           try {
             if (!Strings.isNullOrEmpty(ownerPrincipal)) {
-              ownerStore.add(streamId, new KerberosPrincipalId(ownerPrincipal));
+              ownerAdmin.add(streamId, new KerberosPrincipalId(ownerPrincipal));
             }
           } catch (Exception e) {
             // clean up from streamMetaStore
@@ -701,7 +701,7 @@ public class FileStreamAdmin implements StreamAdmin {
           });
 
           streamMetaStore.removeStream(streamId);
-          ownerStore.delete(streamId);
+          ownerAdmin.delete(streamId);
           metadataStore.removeMetadata(streamId);
           // revoke all privileges on the stream
           privilegesManager.revoke(streamId);

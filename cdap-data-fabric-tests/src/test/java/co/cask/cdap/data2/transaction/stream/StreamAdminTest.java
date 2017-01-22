@@ -22,6 +22,7 @@ import co.cask.cdap.api.flow.flowlet.StreamEvent;
 import co.cask.cdap.common.app.RunIds;
 import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.namespace.NamespacedLocationFactory;
 import co.cask.cdap.common.test.AppJarHelper;
 import co.cask.cdap.data.file.FileWriter;
@@ -48,7 +49,6 @@ import co.cask.cdap.security.authorization.InMemoryAuthorizer;
 import co.cask.cdap.security.spi.authentication.SecurityRequestContext;
 import co.cask.cdap.security.spi.authorization.Authorizer;
 import co.cask.cdap.security.spi.authorization.UnauthorizedException;
-import co.cask.cdap.store.OwnerStore;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
@@ -88,7 +88,7 @@ public abstract class StreamAdminTest {
 
   protected abstract Authorizer getAuthorizer();
 
-  protected abstract OwnerStore getOwnerStore();
+  protected abstract OwnerAdmin getOwnerAdmin();
 
   protected static void setupNamespaces(NamespacedLocationFactory namespacedLocationFactory) throws IOException {
     namespacedLocationFactory.get(FOO_NAMESPACE.toId()).mkdirs();
@@ -262,7 +262,7 @@ public abstract class StreamAdminTest {
   public void testOwner() throws Exception {
     // crate a stream with owner
     StreamAdmin streamAdmin = getStreamAdmin();
-    OwnerStore ownerStore = getOwnerStore();
+    OwnerAdmin ownerAdmin = getOwnerAdmin();
     grantAndAssertSuccess(FOO_NAMESPACE, USER, ImmutableSet.of(Action.WRITE));
     StreamId stream = FOO_NAMESPACE.stream("stream");
     Properties properties = new Properties();
@@ -271,7 +271,7 @@ public abstract class StreamAdminTest {
     Assert.assertTrue(streamAdmin.exists(stream));
 
     // Check that the owner information got stored in owner store
-    Assert.assertTrue(ownerStore.exists(stream));
+    Assert.assertTrue(ownerAdmin.exists(stream));
 
     // also verify that we are able to get owner information back in properties
     Assert.assertEquals("user/somehost@somekdc.net", streamAdmin.getProperties(stream).getOwnerPrincipal());
@@ -286,7 +286,7 @@ public abstract class StreamAdminTest {
 
     // drop the stream which should also delete the owner info
     streamAdmin.drop(stream);
-    Assert.assertFalse(ownerStore.exists(stream));
+    Assert.assertFalse(ownerAdmin.exists(stream));
   }
 
   @Test

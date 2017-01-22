@@ -25,7 +25,6 @@ import co.cask.cdap.api.dataset.DatasetProperties;
 import co.cask.cdap.api.dataset.table.ConflictDetection;
 import co.cask.cdap.api.dataset.table.Table;
 import co.cask.cdap.common.AlreadyExistsException;
-import co.cask.cdap.common.kerberos.SecurityUtil;
 import co.cask.cdap.data.dataset.SystemDatasetInstantiator;
 import co.cask.cdap.data2.datafabric.dataset.DatasetsUtil;
 import co.cask.cdap.data2.dataset2.DatasetFramework;
@@ -34,13 +33,11 @@ import co.cask.cdap.data2.dataset2.lib.table.EntityIdKeyHelper;
 import co.cask.cdap.data2.dataset2.lib.table.MDSKey;
 import co.cask.cdap.data2.transaction.Transactions;
 import co.cask.cdap.data2.transaction.TxCallable;
-import co.cask.cdap.proto.element.EntityType;
 import co.cask.cdap.proto.id.DatasetId;
 import co.cask.cdap.proto.id.EntityId;
 import co.cask.cdap.proto.id.KerberosPrincipalId;
 import co.cask.cdap.proto.id.NamespaceId;
 import co.cask.cdap.proto.id.NamespacedEntityId;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import org.apache.tephra.RetryStrategies;
 import org.apache.tephra.TransactionFailureException;
@@ -48,7 +45,6 @@ import org.apache.tephra.TransactionSystemClient;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
@@ -69,34 +65,23 @@ import javax.annotation.Nullable;
  * signifies that the entity does not exists. The owner information is only stored if an owner was provided during
  * creation time else the owner information is non-existent which signifies that the entity own is default CDAP owner.
  * </p>
- * <p>
- * <p>
- * The owner's principal must be in the of the following Kerberos name types:
- * <ul>
- * <li>KRB_NT_PRINCIPAL:  Just the name of the principal as in DCE, or for users. For example: alice@REALM</li>
- * <li>KRB_NT_SRV_HST:  Service with host name as instance(telnet, rcommands). For example alice/hostname@REALM</li>
- * </ul>
- * Refer to <a href=https://tools.ietf.org/html/rfc4120#section-7.5.8>Name Types</a> documentation for details on
- * Kerberos Name Types.
- * </p>
  */
-public class OwnerStore {
+public class DefaultOwnerStore extends AbstractOwnerStore {
   private static final String OWNER_PREFIX = "o";
   // currently, we only leverage one column of the table. However, not using KeyValueTable, so that being able to use
-  // additional columns in the future is simple
+  // additional columns in the future is simple. In future, we will like to support storing keytab file location
+  // too which we will store in another column.
   private static final byte[] COL = Bytes.toBytes("c");
   private static final DatasetId DATASET_ID = NamespaceId.SYSTEM.dataset("owner.meta");
   private static final DatasetProperties DATASET_PROPERTIES =
     DatasetProperties.builder().add(Table.PROPERTY_CONFLICT_LEVEL, ConflictDetection.COLUMN.name()).build();
-  private static final Set<EntityType> SUPPORTED_ENTITY_TYPES = Sets.newHashSet(EntityType.NAMESPACE,
-                                                                                EntityType.APPLICATION,
-                                                                                EntityType.DATASET, EntityType.STREAM);
+
 
   private final DatasetFramework datasetFramework;
   private final Transactional transactional;
 
   @Inject
-  OwnerStore(DatasetFramework datasetFramework, TransactionSystemClient txClient) {
+  DefaultOwnerStore(DatasetFramework datasetFramework, TransactionSystemClient txClient) {
     this.datasetFramework = datasetFramework;
     this.transactional = Transactions.createTransactionalWithRetry(
       Transactions.createTransactional(new MultiThreadDatasetCache(new SystemDatasetInstantiator(datasetFramework),
@@ -107,7 +92,7 @@ public class OwnerStore {
   }
 
   /**
-   * Adds datasets and types to the given {@link DatasetFramework} used by {@link OwnerStore}
+   * Adds datasets and types to the given {@link DatasetFramework} used by {@link DefaultOwnerStore}
    *
    * @param framework framework to add types and datasets to
    */
@@ -115,21 +100,10 @@ public class OwnerStore {
     framework.addInstance(Table.class.getName(), DATASET_ID, DATASET_PROPERTIES);
   }
 
-  /**
-   * Store the owner's kerberosPrincipalId for the given {@link EntityId}
-   *
-   * @param entityId The {@link EntityId} whose owner kerberosPrincipalId needs to be stored
-   * @param kerberosPrincipalId the {@link KerberosPrincipalId} of the {@link EntityId} owner
-   * @throws IOException if failed to get the store
-   * @throws AlreadyExistsException if the given entity already has an owner
-   * @throws IllegalArgumentException if the given KerberosPrincipalId is not valid or the entity is not of
-   * supported type. The supported types are {@link OwnerStore#SUPPORTED_ENTITY_TYPES}.
-   */
+  @Override
   public void add(final NamespacedEntityId entityId, final KerberosPrincipalId kerberosPrincipalId)
     throws IOException, AlreadyExistsException {
-    // first validate that the given kerberos principal id is valid
-    SecurityUtil.validateKerberosPrincipal(kerberosPrincipalId);
-    validateEntityType(entityId);
+    validate(entityId, kerberosPrincipalId);
     try {
       transactional.execute(new TxRunnable() {
         @Override
@@ -150,58 +124,15 @@ public class OwnerStore {
     }
   }
 
-  /**
-   * Retrieves the owner information for the given {@link EntityId}
-   *
-   * @param entityId the {@link EntityId} whose owner principal information needs to be retrieved
-   * @return {@link KerberosPrincipalId} of the {@link EntityId} owner
-   * @throws IOException if failed to get the store
-   * @throws IllegalArgumentException if the given entity is not of supported type. The supported types are
-   * {@link OwnerStore#SUPPORTED_ENTITY_TYPES}
-   */
-  public KerberosPrincipalId getOwner(final NamespacedEntityId entityId) throws IOException {
-    validateEntityType(entityId);
-    try {
-      return Transactions.execute(transactional, new TxCallable<KerberosPrincipalId>() {
-        @Override
-        public KerberosPrincipalId call(DatasetContext context) throws Exception {
-          byte[] principalBytes = getTable(context).get(createRowKey(entityId), COL);
-          return principalBytes == null ? null : new KerberosPrincipalId(Bytes.toString(principalBytes));
-        }
-      });
-    } catch (TransactionFailureException e) {
-      throw Transactions.propagate(e, IOException.class);
-    }
-  }
-
-  /**
-   * <p>
-   * Returns the {@link KerberosPrincipalId} to be impersonated for this {@link EntityId} by tracing the entity
-   * hierarchy.
-   * </p>
-   * <p>
-   * If an owner is present for this entity id then returns the {@link KerberosPrincipalId} of that immediate owner.
-   * If a direct owner is not present then the namespace owner {@link KerberosPrincipalId} will be returned if
-   * one is present else returns null.
-   * <p>
-   *
-   * @param entityId the {@link EntityId} whose owner principal information needs to be retrieved
-   * @return {@link KerberosPrincipalId} of the effective owner for the given entity
-   * @throws IOException if  failed to get the store
-   * @throws IllegalArgumentException if the given entity is not of supported type. The supported types are
-   * {@link OwnerStore#SUPPORTED_ENTITY_TYPES}
-   */
+  @Override
   @Nullable
-  public KerberosPrincipalId getEffectiveOwner(final NamespacedEntityId entityId) throws IOException {
-    validateEntityType(entityId);
+  public KerberosPrincipalId getOwner(final NamespacedEntityId entityId) throws IOException {
+    validate(entityId);
     try {
       return Transactions.execute(transactional, new TxCallable<KerberosPrincipalId>() {
         @Override
         public KerberosPrincipalId call(DatasetContext context) throws Exception {
           byte[] principalBytes = getTable(context).get(createRowKey(entityId), COL);
-          if (principalBytes == null) {
-            // TODO: no immediate owner found look up in hierarchy
-          }
           return principalBytes == null ? null : new KerberosPrincipalId(Bytes.toString(principalBytes));
         }
       });
@@ -210,17 +141,9 @@ public class OwnerStore {
     }
   }
 
-  /**
-   * Checks if owner information exists or not
-   *
-   * @param entityId the {@link EntityId} for which the check needs to be performed
-   * @return a boolean true: owner principal exists, false: no owner principal exists
-   * @throws IOException if failed to get the store
-   * @throws IllegalArgumentException if the given entity is not of supported type. The supported types are
-   * {@link OwnerStore#SUPPORTED_ENTITY_TYPES}
-   */
+  @Override
   public boolean exists(final NamespacedEntityId entityId) throws IOException {
-    validateEntityType(entityId);
+    validate(entityId);
     try {
       return Transactions.execute(transactional, new TxCallable<Boolean>() {
         @Override
@@ -234,16 +157,9 @@ public class OwnerStore {
     }
   }
 
-  /**
-   * Deletes the owner principal for the given {@link EntityId}
-   *
-   * @param entityId the entity whose owner principal needs to be deleted
-   * @throws IOException if failed to get the owner store
-   * @throws IllegalArgumentException if the given entity is not of supported type. The supported types are
-   * {@link OwnerStore#SUPPORTED_ENTITY_TYPES}
-   */
+  @Override
   public void delete(final NamespacedEntityId entityId) throws IOException {
-    validateEntityType(entityId);
+    validate(entityId);
     try {
       transactional.execute(new TxRunnable() {
         @Override
@@ -269,14 +185,5 @@ public class OwnerStore {
     EntityIdKeyHelper.addTargetIdToKey(builder, targetId);
     MDSKey build = builder.build();
     return build.getKey();
-  }
-
-  private void validateEntityType(NamespacedEntityId entityId) {
-    if (!SUPPORTED_ENTITY_TYPES.contains(entityId.getEntityType())) {
-      throw new IllegalArgumentException(String.format("The given entity '%s' is of unsupported types '%s'. " +
-                                                         "Entity ownership is only supported for '%s'.",
-                                                       entityId.getEntityName(), entityId.getEntityType(),
-                                                       SUPPORTED_ENTITY_TYPES));
-    }
   }
 }

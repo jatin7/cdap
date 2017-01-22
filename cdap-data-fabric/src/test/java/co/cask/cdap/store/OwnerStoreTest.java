@@ -17,59 +17,23 @@
 package co.cask.cdap.store;
 
 import co.cask.cdap.common.AlreadyExistsException;
-import co.cask.cdap.common.guice.ConfigModule;
-import co.cask.cdap.common.guice.LocationRuntimeModule;
-import co.cask.cdap.common.namespace.guice.NamespaceClientRuntimeModule;
-import co.cask.cdap.data.runtime.DataSetsModules;
-import co.cask.cdap.data.runtime.SystemDatasetRuntimeModule;
-import co.cask.cdap.data2.dataset2.DatasetFrameworkTestUtil;
+import co.cask.cdap.common.kerberos.OwnerStore;
 import co.cask.cdap.proto.id.KerberosPrincipalId;
 import co.cask.cdap.proto.id.NamespaceId;
 import co.cask.cdap.proto.id.StreamId;
-import co.cask.cdap.security.auth.context.AuthenticationContextModules;
-import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
-import co.cask.cdap.security.authorization.AuthorizationTestModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import org.apache.tephra.TransactionManager;
-import org.apache.tephra.runtime.TransactionInMemoryModule;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
-
-import java.io.IOException;
 
 /**
  * Tests for {@link OwnerStore}.
  */
-public class OwnerStoreTest {
+public abstract class OwnerStoreTest {
 
-  @ClassRule
-  public static DatasetFrameworkTestUtil dsFrameworkUtil = new DatasetFrameworkTestUtil();
-  private static OwnerStore ownerStore;
-
-
-  @BeforeClass
-  public static void setup() throws IOException {
-    Injector injector = Guice.createInjector(
-      new ConfigModule(),
-      new DataSetsModules().getInMemoryModules(),
-      new LocationRuntimeModule().getInMemoryModules(),
-      new TransactionInMemoryModule(),
-      new SystemDatasetRuntimeModule().getInMemoryModules(),
-      new NamespaceClientRuntimeModule().getInMemoryModules(),
-      new AuthorizationTestModule(),
-      new AuthorizationEnforcementModule().getInMemoryModules(),
-      new AuthenticationContextModules().getMasterModule()
-    );
-    TransactionManager txManager = injector.getInstance(TransactionManager.class);
-    txManager.startAndWait();
-    ownerStore = injector.getInstance(OwnerStore.class);
-  }
+  public abstract OwnerStore getOwnerStore();
 
   @Test
   public void test() throws Exception {
+    OwnerStore ownerStore = getOwnerStore();
     StreamId streamId = NamespaceId.DEFAULT.stream("fooStream");
 
     // No owner info should exist for above stream

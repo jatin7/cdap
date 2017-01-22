@@ -19,6 +19,9 @@ import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.ZKClientModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerStore;
 import co.cask.cdap.common.namespace.NamespaceQueryAdmin;
 import co.cask.cdap.common.namespace.NamespacedLocationFactory;
 import co.cask.cdap.common.namespace.NamespacedLocationFactoryTestClient;
@@ -39,6 +42,7 @@ import co.cask.cdap.notifications.feeds.guice.NotificationFeedServiceRuntimeModu
 import co.cask.cdap.security.auth.context.AuthenticationContextModules;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationTestModule;
+import co.cask.cdap.store.InMemoryOwnerStore;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -86,6 +90,7 @@ public class DistributedStreamCoordinatorClientTest extends StreamCoordinatorTes
         @Override
         protected void configure() {
           bind(MetadataStore.class).to(NoOpMetadataStore.class);
+          bind(OwnerStore.class).to(InMemoryOwnerStore.class);
         }
       }),
       new TransactionMetricsModule(),
@@ -97,6 +102,7 @@ public class DistributedStreamCoordinatorClientTest extends StreamCoordinatorTes
           bind(NamespacedLocationFactory.class).toInstance(nlf);
           bind(NamespaceQueryAdmin.class).to(SimpleNamespaceQueryAdmin.class);
           bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
         }
       },
       new ExploreClientModule(),
