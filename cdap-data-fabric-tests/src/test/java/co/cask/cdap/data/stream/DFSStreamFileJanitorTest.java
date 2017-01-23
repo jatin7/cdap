@@ -24,6 +24,7 @@ import co.cask.cdap.common.guice.ZKClientModule;
 import co.cask.cdap.common.io.RootLocationFactory;
 import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
 import co.cask.cdap.common.kerberos.OwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerStore;
 import co.cask.cdap.common.namespace.DefaultNamespacedLocationFactory;
 import co.cask.cdap.common.namespace.InMemoryNamespaceClient;
 import co.cask.cdap.common.namespace.NamespaceAdmin;
@@ -51,6 +52,7 @@ import co.cask.cdap.security.auth.context.AuthenticationContextModules;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationTestModule;
 import co.cask.cdap.store.InMemoryNamespaceStore;
+import co.cask.cdap.store.InMemoryOwnerStore;
 import co.cask.cdap.store.NamespaceStore;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -113,6 +115,7 @@ public class DFSStreamFileJanitorTest extends StreamFileJanitorTestBase {
         @Override
         protected void configure() {
           bind(MetadataStore.class).to(NoOpMetadataStore.class);
+          bind(OwnerStore.class).to(InMemoryOwnerStore.class);
         }
       }),
       new ExploreClientModule(),

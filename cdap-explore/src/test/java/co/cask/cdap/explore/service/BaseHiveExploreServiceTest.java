@@ -439,6 +439,7 @@ public class BaseHiveExploreServiceTest {
         protected void configure() {
           bind(NotificationFeedManager.class).to(NoOpNotificationFeedManager.class);
           bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
 
           Multibinder<HttpHandler> handlerBinder =
             Multibinder.newSetBinder(binder(), HttpHandler.class, Names.named(Constants.Stream.STREAM_HANDLER));
