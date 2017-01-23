@@ -28,13 +28,13 @@ import co.cask.cdap.data2.dataset2.lib.hbase.AbstractHBaseDataSetAdmin;
 import co.cask.cdap.data2.util.hbase.HBaseTableUtil;
 import co.cask.cdap.data2.util.hbase.HTableDescriptorBuilder;
 import co.cask.cdap.proto.id.NamespaceId;
+import co.cask.cdap.spi.hbase.HBaseDDLExecutor;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Coprocessor;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.tephra.TxConstants;
 import org.apache.twill.filesystem.Location;
 import org.apache.twill.filesystem.LocationFactory;
@@ -123,8 +123,8 @@ public class HBaseTableAdmin extends AbstractHBaseDataSetAdmin implements Updata
       splits = GSON.fromJson(splitsProperty, byte[][].class);
     }
 
-    try (HBaseAdmin admin = new HBaseAdmin(hConf)) {
-      tableUtil.createTableIfNotExists(admin, tableId, tableDescriptor.build(), splits);
+    try (HBaseDDLExecutor executor = ddlExecutorFactory.get()) {
+      tableUtil.createTableIfNotExists(executor, tableId, tableDescriptor.build(), splits);
     }
   }
 
