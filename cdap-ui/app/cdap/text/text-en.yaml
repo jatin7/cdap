@@ -136,7 +136,7 @@ features:
     setPreferencesActionLabel: Set Preferences
     setPreferencesAppDescriptionLabel: Specify new or override existing system or namespace preferences. These preferences will be accessible in all programs within this application.
     setPreferencesProgramDescriptionLabel: Specify new or override existing system, namespace, or application preferences. These preferences will only be accessible within this program.
-    setPreferencesButtonLabel: 
+    setPreferencesButtonLabel:
       saveAndClose: Save & Close
       saving: Saving
     setPreferencesInheritedPrefsLabel: Inherited Preferences
@@ -146,6 +146,10 @@ features:
       origin: ORIGIN
     setPreferencesReset: Reset
     setPreferencesFailed: Error - Set Preferences Failed.
+    setPreferencesSuccess:
+      default: Preferences Saved
+      application: Application Preferences Saved
+      program: Program Preferences Saved
     start: Start
     stop: Stop
     sendEventsButtonLabel: Send

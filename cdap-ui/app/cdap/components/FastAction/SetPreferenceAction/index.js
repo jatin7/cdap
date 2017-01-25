@@ -21,6 +21,7 @@ import upperFirst from 'lodash/upperFirst';
 import orderBy from 'lodash/orderBy';
 import T from 'i18n-react';
 import shortid from 'shortid';
+import classnames from 'classnames';
 import { Modal, Tooltip, ModalHeader, ModalBody } from 'reactstrap';
 import myPreferenceApi from 'api/preference';
 import {convertProgramToApi} from 'services/program-api-converter';
@@ -35,6 +36,7 @@ export default class SetPreferenceAction extends Component {
     this.state = {
       modal: false,
       saving: false,
+      showSavedMessage: false,
       fieldsResetted: false,
       keyValues: {},
       inheritedPreferences: [],
@@ -57,7 +59,27 @@ export default class SetPreferenceAction extends Component {
     this.toggleModal = this.toggleModal.bind(this);
     this.onKeyValueChange = this.onKeyValueChange.bind(this);
     this.toggleTooltip = this.toggleTooltip.bind(this);
+  }
 
+  componentWillMount() {
+    this.getSpecifiedPreferences();
+    this.getInheritedPreferences();
+  }
+
+  onKeyValueChange(keyValues) {
+    if (!this.state.fieldsResetted) {
+      this.setState({keyValues});
+    }
+    else {
+      this.setState({fieldsResetted: false});
+    }
+  }
+
+  onSuccess() {
+    this.setState({showSavedMessage: true});
+    setTimeout(() => {
+      this.setState({showSavedMessage: false});
+    }, 3000);
   }
 
   toggleTooltip() {
@@ -69,6 +91,21 @@ export default class SetPreferenceAction extends Component {
       modal: !this.state.modal,
       saving: false
     });
+  }
+
+  toggleSorted(attribute) {
+    let sortOrder = 'asc';
+    if (this.state.sortByAttribute != attribute) {
+      this.setState({sortOrder});
+    } else {
+      if (this.state.sortOrder === 'asc') {
+        sortOrder = 'desc';
+      }
+      this.setState({sortOrder});
+    }
+    this.setState({sortByAttribute: attribute});
+    let newInheritedPreferences = orderBy(this.state.inheritedPreferences, attribute, sortOrder);
+    this.setState({inheritedPreferences: newInheritedPreferences});
   }
 
   getSpecifiedPreferences() {
@@ -136,6 +173,8 @@ export default class SetPreferenceAction extends Component {
     .subscribe(
       () => {
         this.toggleModal();
+        this.onSuccess();
+        this.props.onSuccess();
       },
       (error) => {
         this.setState({
@@ -170,30 +209,6 @@ export default class SetPreferenceAction extends Component {
     return keyValObj;
   }
 
-  toggleSorted(attribute) {
-    let sortOrder = 'asc';
-    if (this.state.sortByAttribute != attribute) {
-      this.setState({sortOrder});
-    } else {
-      if (this.state.sortOrder === 'asc') {
-        sortOrder = 'desc';
-      }
-      this.setState({sortOrder});
-    }
-    this.setState({sortByAttribute: attribute});
-    let newInheritedPreferences = orderBy(this.state.inheritedPreferences, attribute, sortOrder);
-    this.setState({inheritedPreferences: newInheritedPreferences});
-  }
-
-  onKeyValueChange(keyValues) {
-    if (!this.state.fieldsResetted) {
-      this.setState({keyValues});
-    }
-    else {
-      this.setState({fieldsResetted: false});
-    }
-  }
-
   allFieldsFilled() {
     return this.state.keyValues.pairs.every((keyValuePair) => {
       return (keyValuePair.key.length > 0 && keyValuePair.value.length > 0);
@@ -208,11 +223,6 @@ export default class SetPreferenceAction extends Component {
   preventPropagation(event) {
     event.stopPropagation();
     event.nativeEvent.stopImmediatePropagation();
-  }
-
-  componentWillMount() {
-    this.getSpecifiedPreferences();
-    this.getInheritedPreferences();
   }
 
   renderSpecifyPreferences() {
@@ -334,10 +344,11 @@ export default class SetPreferenceAction extends Component {
     const saveAndCloseLabel = T.translate('features.FastAction.setPreferencesButtonLabel.saveAndClose');
     const resetLink = T.translate('features.FastAction.setPreferencesReset');
     let tooltipID = `${this.props.entity.uniqueId}-setpreferences`;
+    let wrenchClasses = classnames('fa fa-wrench', {'saved-success': this.state.showSavedMessage});
     return (
       <span>
         <FastActionButton
-          icon="fa fa-wrench"
+          icon={wrenchClasses}
           action={this.toggleModal}
           id={tooltipID}
         />
@@ -438,6 +449,7 @@ SetPreferenceAction.propTypes = {
     applicationId: PropTypes.string,
     uniqueId: PropTypes.string,
     type: PropTypes.oneOf(['application', 'program']).isRequired,
-    programType: PropTypes.string
+    programType: PropTypes.string,
   }),
+  onSuccess: PropTypes.func
 };

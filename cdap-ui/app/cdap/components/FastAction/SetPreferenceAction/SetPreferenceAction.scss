@@ -20,11 +20,20 @@ $text-field-width: 300px;
 $modal-width: 884px;
 $modal-max-height: 750px;
 $cell-height: 2.5em;
+$success-color: #7ed321;
 
 .tooltip {
   .tooltip-inner {
     background-color: #000000;
     color: white;
+  }
+}
+
+.fast-actions-container {
+  .fa-wrench {
+    &.saved-success {
+      color: $success-color;
+    }
   }
 }
 

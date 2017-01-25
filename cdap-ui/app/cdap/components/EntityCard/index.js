@@ -36,6 +36,7 @@ export default class EntityCard extends Component {
       overviewMode: false
     };
     this.cardRef = null;
+    this.onPreferencesSaved = this.onPreferencesSaved.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -44,6 +45,13 @@ export default class EntityCard extends Component {
         overviewMode: false
       });
     }
+  }
+
+  onPreferencesSaved() {
+    this.setState({preferencesSaved: true});
+    setTimeout(() => {
+      this.setState({preferencesSaved: false});
+    }, 3000);
   }
 
   renderEntityStatus() {
@@ -100,6 +108,7 @@ export default class EntityCard extends Component {
         className={this.props.entity.isHydrator ? 'datapipeline' : this.props.entity.type}
         entity={this.props.entity}
         systemTags={this.props.entity.metadata.metadata.SYSTEM.tags}
+        preferencesSaved={this.state.preferencesSaved}
       />
     );
     let position = 'left';
@@ -175,6 +184,7 @@ export default class EntityCard extends Component {
             <FastActions
               entity={this.props.entity}
               onUpdate={this.props.onUpdate}
+              onPreferencesSaved={this.onPreferencesSaved}
             />
           </div>
         </Card>
