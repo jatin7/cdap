@@ -149,7 +149,6 @@ class ExistingEntitySystemMetadataWriter {
     SystemDatasetInstantiatorFactory systemDatasetInstantiatorFactory =
       new SystemDatasetInstantiatorFactory(locationFactory, dsFramework, cConf);
     try (SystemDatasetInstantiator systemDatasetInstantiator = systemDatasetInstantiatorFactory.create()) {
-      UserGroupInformation ugi = impersonator.getUGI(namespace);
 
       for (DatasetSpecificationSummary summary : dsFramework.getInstances(namespace)) {
         final DatasetId dsInstance = namespace.dataset(summary.getName());
@@ -158,7 +157,7 @@ class ExistingEntitySystemMetadataWriter {
         Dataset dataset = null;
         try {
           try {
-            dataset = ImpersonationUtils.doAs(ugi, new Callable<Dataset>() {
+            dataset = impersonator.doAs(namespace, new Callable<Dataset>() {
               @Override
               public Dataset call() throws Exception {
                 return systemDatasetInstantiator.getDataset(dsInstance);

@@ -105,7 +105,7 @@ public class DatasetAdminService {
     try (DatasetClassLoaderProvider classLoaderProvider =
            new DirectoryClassLoaderProvider(cConf, locationFactory)) {
       final DatasetContext context = DatasetContext.from(datasetInstanceId.getNamespace());
-      UserGroupInformation ugi = impersonator.getUGI(datasetInstanceId.getParent());
+      UserGroupInformation ugi = impersonator.getUGI(datasetInstanceId);
 
       final DatasetType type = ImpersonationUtils.doAs(ugi, new Callable<DatasetType>() {
         @Override
