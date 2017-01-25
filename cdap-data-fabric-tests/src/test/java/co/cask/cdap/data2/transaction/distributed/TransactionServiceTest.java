@@ -228,6 +228,7 @@ public class TransactionServiceTest {
                              protected void configure() {
                                bind(NamespaceQueryAdmin.class).to(SimpleNamespaceQueryAdmin.class);
                                bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
+                               bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
                              }
                            },
                            new DataFabricModules().getDistributedModules(),
