@@ -421,13 +421,15 @@ export default class SetPreferenceAction extends Component {
                       <span className="float-xs-left reset">
                         <a onClick = {this.resetFields.bind(this)}>{resetLink}</a>
                       </span>
-                      {
-                        this.state.error ?
-                          <div className="float-xs-left text-danger">{this.state.error}</div>
-                        :
-                          null
-                      }
                     </div>
+                  </div>
+                  <div className="preferences-error">
+                    {
+                      this.state.error ?
+                        <div className="bg-danger text-white">{this.state.error}</div>
+                      :
+                        null
+                    }
                   </div>
                   <hr />
                   <div className="inherited-preferences-container">

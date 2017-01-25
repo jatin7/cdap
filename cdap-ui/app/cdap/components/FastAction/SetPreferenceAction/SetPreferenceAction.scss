@@ -148,6 +148,15 @@ $success-color: #7ed321;
             }
           }
 
+          .preferences-error {
+            transform: translateY(20px);
+
+            .bg-danger {
+              padding: 0 20px;
+              line-height: 30px;
+            }
+          }
+
           hr {
             margin-top: 20px;
             margin-bottom: 0;
