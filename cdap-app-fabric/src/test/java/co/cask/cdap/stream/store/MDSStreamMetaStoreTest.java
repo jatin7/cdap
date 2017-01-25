@@ -24,6 +24,8 @@ import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.LocationRuntimeModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.metrics.NoOpMetricsCollectionService;
 import co.cask.cdap.common.namespace.guice.NamespaceClientRuntimeModule;
 import co.cask.cdap.data.runtime.DataFabricModules;
@@ -83,6 +85,7 @@ public class MDSStreamMetaStoreTest extends StreamMetaStoreTestBase {
           bind(StreamMetaStore.class).to(MDSStreamMetaStore.class).in(Scopes.SINGLETON);
           bind(MetricsCollectionService.class).to(NoOpMetricsCollectionService.class).in(Scopes.SINGLETON);
           bind(Store.class).to(DefaultStore.class);
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
           bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
         }
       }

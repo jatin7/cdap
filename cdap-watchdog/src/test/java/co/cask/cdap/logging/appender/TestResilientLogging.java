@@ -26,6 +26,8 @@ import co.cask.cdap.common.guice.IOModule;
 import co.cask.cdap.common.guice.KafkaClientModule;
 import co.cask.cdap.common.guice.NonCustomLocationUnitTestModule;
 import co.cask.cdap.common.guice.ZKClientModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.logging.LoggingContext;
 import co.cask.cdap.common.logging.LoggingContextAccessor;
 import co.cask.cdap.common.namespace.guice.NamespaceClientRuntimeModule;
@@ -48,6 +50,7 @@ import co.cask.cdap.logging.read.ReadRange;
 import co.cask.cdap.security.auth.context.AuthenticationContextModules;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationTestModule;
+import co.cask.cdap.security.authorization.DefaultAuthorizationContext;
 import co.cask.cdap.security.impersonation.UGIProvider;
 import co.cask.cdap.security.impersonation.UnsupportedUGIProvider;
 import com.google.common.collect.Iterables;
@@ -120,6 +123,7 @@ public class TestResilientLogging {
       new AbstractModule() {
         @Override
         protected void configure() {
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
           bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
         }
       });

@@ -18,6 +18,8 @@ package co.cask.cdap.logging;
 
 import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.guice.NonCustomLocationUnitTestModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.namespace.NamespaceQueryAdmin;
 import co.cask.cdap.common.namespace.SimpleNamespaceQueryAdmin;
 import co.cask.cdap.data.runtime.DataSetsModules;
@@ -91,6 +93,7 @@ public abstract class KafkaTestBase {
           logProcessorBinder.addBinding().to(KafkaLogWriterPluginFactory.class);
           logProcessorBinder.addBinding().to(LogMetricsPluginFactory.class);
           bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
           bind(NamespaceQueryAdmin.class).to(SimpleNamespaceQueryAdmin.class);
           install(new FactoryModuleBuilder().build(LogSaverFactory.class));
         }

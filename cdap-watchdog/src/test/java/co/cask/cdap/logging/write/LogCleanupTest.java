@@ -22,6 +22,8 @@ import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.LocationRuntimeModule;
 import co.cask.cdap.common.io.Locations;
 import co.cask.cdap.common.io.RootLocationFactory;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.logging.LoggingContext;
 import co.cask.cdap.common.namespace.NamespaceAdmin;
 import co.cask.cdap.common.namespace.NamespacedLocationFactory;
@@ -135,6 +137,7 @@ public class LogCleanupTest {
       new AbstractModule() {
         @Override
         protected void configure() {
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
           bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
         }
       }

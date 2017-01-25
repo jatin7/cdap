@@ -160,7 +160,6 @@ public class DFSStreamHeartbeatsTest {
           bind(HeartbeatPublisher.class).to(MockHeartbeatPublisher.class).in(Scopes.SINGLETON);
 
           bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
-
           bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
         }
       }));

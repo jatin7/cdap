@@ -21,6 +21,8 @@ import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.NonCustomLocationUnitTestModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.common.logging.LoggingContext;
 import co.cask.cdap.common.metrics.NoOpMetricsCollectionService;
 import co.cask.cdap.common.namespace.NamespaceQueryAdmin;
@@ -95,6 +97,7 @@ public class TestFileLogging {
         @Override
         protected void configure() {
           bind(MetricsCollectionService.class).to(NoOpMetricsCollectionService.class);
+          bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
           bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
           bind(NamespaceQueryAdmin.class).to(SimpleNamespaceQueryAdmin.class);
         }
