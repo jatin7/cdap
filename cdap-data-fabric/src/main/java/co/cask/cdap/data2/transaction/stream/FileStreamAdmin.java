@@ -373,7 +373,7 @@ public class FileStreamAdmin implements StreamAdmin {
             // a hive change, as they are just properties used by the stream storage handler.
             Schema currSchema = oldProperties.getFormat().getSchema();
             Schema newSchema = format.getSchema();
-            if (Objects.equals(currSchema, newSchema)) {
+            if (!Objects.equals(currSchema, newSchema)) {
               alterExploreStream(streamId, false, null);
               alterExploreStream(streamId, true, format);
             }

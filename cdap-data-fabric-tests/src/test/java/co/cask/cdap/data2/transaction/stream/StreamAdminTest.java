@@ -56,6 +56,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
 import org.apache.twill.filesystem.LocalLocationFactory;
 import org.apache.twill.filesystem.Location;
 import org.apache.twill.filesystem.LocationFactory;
@@ -75,6 +76,7 @@ import java.util.Properties;
 import java.util.Set;
 
 public abstract class StreamAdminTest {
+  private static final Gson GSON = new Gson();
   private static final Principal USER = new Principal(System.getProperty("user.name"), Principal.PrincipalType.USER);
 
   protected static CConfiguration cConf = CConfiguration.create();
@@ -267,7 +269,8 @@ public abstract class StreamAdminTest {
     grantAndAssertSuccess(FOO_NAMESPACE, USER, ImmutableSet.of(Action.WRITE));
     StreamId stream = FOO_NAMESPACE.stream("stream");
     Properties properties = new Properties();
-    properties.put(Constants.Security.OWNER_PRINCIPAL, "user/somehost@somekdc.net");
+    KerberosPrincipalId ownerPrincipal = new KerberosPrincipalId("user/somehost@somekdc.net");
+    properties.put(Constants.Security.OWNER_PRINCIPAL, GSON.toJson(ownerPrincipal));
     streamAdmin.create(stream, properties);
     Assert.assertTrue(streamAdmin.exists(stream));
 
@@ -275,7 +278,7 @@ public abstract class StreamAdminTest {
     Assert.assertTrue(ownerAdmin.exists(stream));
 
     // also verify that we are able to get owner information back in properties
-    Assert.assertEquals("user/somehost@somekdc.net", streamAdmin.getProperties(stream).getOwnerPrincipal());
+    Assert.assertEquals(ownerPrincipal, streamAdmin.getProperties(stream).getOwnerPrincipal());
 
     // updating stream owner should fail
     try {

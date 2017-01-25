@@ -24,6 +24,7 @@ import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.NonCustomLocationUnitTestModule;
 import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
 import co.cask.cdap.common.kerberos.OwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerStore;
 import co.cask.cdap.common.namespace.NamespaceAdmin;
 import co.cask.cdap.common.namespace.NamespacedLocationFactory;
 import co.cask.cdap.common.namespace.guice.NamespaceClientRuntimeModule;
@@ -47,10 +48,12 @@ import co.cask.cdap.security.auth.context.AuthenticationContextModules;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationTestModule;
 import co.cask.cdap.store.InMemoryNamespaceStore;
+import co.cask.cdap.store.InMemoryOwnerStore;
 import co.cask.cdap.store.NamespaceStore;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Scopes;
 import com.google.inject.util.Modules;
 import org.apache.twill.filesystem.LocationFactory;
 import org.junit.AfterClass;
@@ -79,7 +82,14 @@ public class LocalStreamFileJanitorTest extends StreamFileJanitorTestBase {
       new ConfigModule(cConf),
       new NonCustomLocationUnitTestModule().getModule(),
       new SystemDatasetRuntimeModule().getInMemoryModules(),
-      new DataSetsModules().getInMemoryModules(),
+      Modules.override(new DataSetsModules().getInMemoryModules()).with(new AbstractModule() {
+        @Override
+        protected void configure() {
+          // bind to an in mem implementation for this test since the DefaultOwnerStore uses transaction and in this
+          // test we are not starting a transaction service
+          bind(OwnerStore.class).to(InMemoryOwnerStore.class).in(Scopes.SINGLETON);
+        }
+      }),
       new TransactionMetricsModule(),
       new DataFabricLevelDBModule(),
       new DiscoveryRuntimeModule().getInMemoryModules(),
