@@ -26,6 +26,7 @@ import co.cask.cdap.common.BadRequestException;
 import co.cask.cdap.common.NotFoundException;
 import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
+import co.cask.cdap.common.kerberos.SecurityUtil;
 import co.cask.cdap.common.namespace.NamespaceQueryAdmin;
 import co.cask.cdap.common.security.AuditDetail;
 import co.cask.cdap.common.security.AuditPolicy;
@@ -41,6 +42,7 @@ import co.cask.cdap.format.RecordFormats;
 import co.cask.cdap.internal.io.SchemaTypeAdapter;
 import co.cask.cdap.proto.StreamDetail;
 import co.cask.cdap.proto.StreamProperties;
+import co.cask.cdap.proto.id.KerberosPrincipalId;
 import co.cask.cdap.proto.id.NamespaceId;
 import co.cask.cdap.proto.id.StreamId;
 import co.cask.cdap.proto.security.Action;
@@ -246,7 +248,7 @@ public final class StreamHandler extends AbstractHttpHandler {
       }
 
       if (streamProperties.getOwnerPrincipal() != null) {
-        props.put(Constants.Security.OWNER_PRINCIPAL, streamProperties.getOwnerPrincipal());
+        props.put(Constants.Security.OWNER_PRINCIPAL, GSON.toJson(streamProperties.getOwnerPrincipal()));
       }
     }
 
@@ -445,6 +447,11 @@ public final class StreamHandler extends AbstractHttpHandler {
       return null;
     }
 
+    // validate owner principal if one is provided
+    if (properties.getOwnerPrincipal() != null) {
+      SecurityUtil.validateKerberosPrincipal(properties.getOwnerPrincipal());
+    }
+
     return new StreamProperties(ttl, formatSpec, threshold, properties.getDescription(),
                                 properties.getOwnerPrincipal());
   }
@@ -520,7 +527,8 @@ public final class StreamHandler extends AbstractHttpHandler {
         json.addProperty("description", src.getDescription());
       }
       if (src.getOwnerPrincipal() != null) {
-        json.addProperty(Constants.Security.OWNER_PRINCIPAL, src.getOwnerPrincipal());
+        json.add(Constants.Security.OWNER_PRINCIPAL, context.serialize(src.getOwnerPrincipal(),
+                                                                       KerberosPrincipalId.class));
       }
       return json;
     }
@@ -540,9 +548,12 @@ public final class StreamHandler extends AbstractHttpHandler {
         jsonObj.get("notification.threshold.mb").getAsInt() : null;
 
       String description = jsonObj.has("description") ? jsonObj.get("description").getAsString() : null;
-      String owner = jsonObj.has(Constants.Security.OWNER_PRINCIPAL) ?
-        jsonObj.get(Constants.Security.OWNER_PRINCIPAL).getAsString() : null;
-      return new StreamProperties(ttl, format, threshold, description, owner);
+      KerberosPrincipalId ownerPrincipal = null;
+      if (jsonObj.has(Constants.Security.OWNER_PRINCIPAL)) {
+        ownerPrincipal = context.deserialize(jsonObj.get(Constants.Security.OWNER_PRINCIPAL),
+                                             KerberosPrincipalId.class);
+      }
+      return new StreamProperties(ttl, format, threshold, description, ownerPrincipal);
     }
   }
 

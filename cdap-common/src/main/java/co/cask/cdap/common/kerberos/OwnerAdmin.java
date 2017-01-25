@@ -16,7 +16,6 @@
 
 package co.cask.cdap.common.kerberos;
 
-import co.cask.cdap.api.annotation.Beta;
 import co.cask.cdap.common.AlreadyExistsException;
 import co.cask.cdap.proto.id.EntityId;
 import co.cask.cdap.proto.id.KerberosPrincipalId;
@@ -40,7 +39,6 @@ public interface OwnerAdmin {
    * @throws IllegalArgumentException if the given KerberosPrincipalId is not valid or the entity is not of
    * supported type.
    */
-  @Beta
   void add(NamespacedEntityId entityId, KerberosPrincipalId kerberosPrincipalId)
     throws IOException, AlreadyExistsException;
 
@@ -52,14 +50,12 @@ public interface OwnerAdmin {
    * @throws IOException if failed to get the store
    * @throws IllegalArgumentException if the given entity is not of supported type.
    */
-  @Beta
   @Nullable
   KerberosPrincipalId getOwner(NamespacedEntityId entityId) throws IOException;
 
   /**
    * <p>
-   * Returns the {@link KerberosPrincipalId} to be impersonated for this {@link EntityId} by tracing the entity
-   * hierarchy.
+   * Retrieves the owner information for the given {@link EntityId} by tracing the entity hierarchy.
    * </p>
    * <p>
    * If an owner is present for this entity id then returns the {@link KerberosPrincipalId} of that immediate owner.
@@ -72,7 +68,6 @@ public interface OwnerAdmin {
    * @throws IOException if  failed to get the store
    * @throws IllegalArgumentException if the given entity is not of supported type.
    */
-  @Beta
   @Nullable
   KerberosPrincipalId getEffectiveOwner(NamespacedEntityId entityId) throws IOException;
 
@@ -84,7 +79,6 @@ public interface OwnerAdmin {
    * @throws IOException if failed to get the store
    * @throws IllegalArgumentException if the given entity is not of supported type.
    */
-  @Beta
   boolean exists(NamespacedEntityId entityId) throws IOException;
 
 
@@ -95,6 +89,5 @@ public interface OwnerAdmin {
    * @throws IOException if failed to get the owner store
    * @throws IllegalArgumentException if the given entity is not of supported type.
    */
-  @Beta
   void delete(NamespacedEntityId entityId) throws IOException;
 }

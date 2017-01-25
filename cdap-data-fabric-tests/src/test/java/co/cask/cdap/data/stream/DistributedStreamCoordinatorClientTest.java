@@ -46,6 +46,7 @@ import co.cask.cdap.store.InMemoryOwnerStore;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Scopes;
 import com.google.inject.util.Modules;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
@@ -90,7 +91,9 @@ public class DistributedStreamCoordinatorClientTest extends StreamCoordinatorTes
         @Override
         protected void configure() {
           bind(MetadataStore.class).to(NoOpMetadataStore.class);
-          bind(OwnerStore.class).to(InMemoryOwnerStore.class);
+          // bind to an in mem implementation for this test since the DefaultOwnerStore uses transaction and in this
+          // test we are not starting a transaction service
+          bind(OwnerStore.class).to(InMemoryOwnerStore.class).in(Scopes.SINGLETON);
         }
       }),
       new TransactionMetricsModule(),

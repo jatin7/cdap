@@ -178,6 +178,8 @@ public final class SecurityUtil {
    *
    * @param principalId The {@link KerberosPrincipalId} from which {@link KerberosName} needs to be created
    * @return {@link KerberosName} for the given {@link KerberosPrincipalId}
+   * @throws IllegalArgumentException if failed to create a {@link KerberosName} from the given
+   * {@link KerberosPrincipalId}
    */
   public static KerberosName getKerberosName(KerberosPrincipalId principalId) {
     return new KerberosName(principalId.getPrincipal());
@@ -190,6 +192,8 @@ public final class SecurityUtil {
    * {@link #getKerberosName(KerberosPrincipalId)} to not return an object to the caller for simplicity.
    *
    * @param principalId {@link KerberosPrincipalId} which needs to be validated
+   * @throws IllegalArgumentException if failed to create a {@link KerberosName} from the given
+   * {@link KerberosPrincipalId}
    */
   public static void validateKerberosPrincipal(KerberosPrincipalId principalId) {
     getKerberosName(principalId);

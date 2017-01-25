@@ -115,7 +115,9 @@ public class DFSStreamFileJanitorTest extends StreamFileJanitorTestBase {
         @Override
         protected void configure() {
           bind(MetadataStore.class).to(NoOpMetadataStore.class);
-          bind(OwnerStore.class).to(InMemoryOwnerStore.class);
+          // bind to an in memory implementation for this test since the DefaultOwnerStore uses transaction and in this
+          // test we are not starting a transaction service
+          bind(OwnerStore.class).to(InMemoryOwnerStore.class).in(Scopes.SINGLETON);
         }
       }),
       new ExploreClientModule(),

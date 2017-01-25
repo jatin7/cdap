@@ -34,7 +34,8 @@ public class InMemoryOwnerStore extends AbstractOwnerStore {
   private final Map<NamespacedEntityId, KerberosPrincipalId> ownerInfo = new HashMap<>();
 
   @Override
-  public void add(NamespacedEntityId entityId, KerberosPrincipalId kerberosPrincipalId) throws AlreadyExistsException {
+  public synchronized void add(NamespacedEntityId entityId, KerberosPrincipalId kerberosPrincipalId)
+    throws AlreadyExistsException {
     validate(entityId, kerberosPrincipalId);
     if (ownerInfo.containsKey(entityId)) {
       throw new AlreadyExistsException(entityId,
@@ -45,18 +46,18 @@ public class InMemoryOwnerStore extends AbstractOwnerStore {
 
   @Nullable
   @Override
-  public KerberosPrincipalId getOwner(NamespacedEntityId entityId) throws IOException {
+  public synchronized KerberosPrincipalId getOwner(NamespacedEntityId entityId) throws IOException {
     validate(entityId);
     return ownerInfo.get(entityId);
   }
 
   @Override
-  public boolean exists(NamespacedEntityId entityId) throws IOException {
+  public synchronized boolean exists(NamespacedEntityId entityId) throws IOException {
     return ownerInfo.containsKey(entityId);
   }
 
   @Override
-  public void delete(NamespacedEntityId entityId) throws IOException {
+  public synchronized void delete(NamespacedEntityId entityId) throws IOException {
     ownerInfo.remove(entityId);
   }
 }

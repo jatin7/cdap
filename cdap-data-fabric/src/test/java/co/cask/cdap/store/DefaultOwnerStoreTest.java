@@ -26,10 +26,8 @@ import co.cask.cdap.data2.dataset2.DatasetFrameworkTestUtil;
 import co.cask.cdap.security.auth.context.AuthenticationContextModules;
 import co.cask.cdap.security.authorization.AuthorizationEnforcementModule;
 import co.cask.cdap.security.authorization.AuthorizationTestModule;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.util.Modules;
 import org.apache.tephra.TransactionManager;
 import org.apache.tephra.runtime.TransactionInMemoryModule;
 import org.junit.BeforeClass;
@@ -49,12 +47,7 @@ public class DefaultOwnerStoreTest extends OwnerStoreTest {
   public static void createInjector() {
     Injector injector = Guice.createInjector(
       new ConfigModule(),
-      Modules.override(new DataSetsModules().getInMemoryModules()).with(new AbstractModule() {
-        @Override
-        protected void configure() {
-          bind(OwnerStore.class).to(DefaultOwnerStore.class);
-        }
-      }),
+      new DataSetsModules().getInMemoryModules(),
       new LocationRuntimeModule().getInMemoryModules(),
       new TransactionInMemoryModule(),
       new SystemDatasetRuntimeModule().getInMemoryModules(),

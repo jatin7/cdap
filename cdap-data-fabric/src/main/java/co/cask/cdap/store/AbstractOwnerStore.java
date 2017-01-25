@@ -30,17 +30,33 @@ import java.util.Set;
  */
 abstract class AbstractOwnerStore implements OwnerStore {
 
-  private static final Set<EntityType> SUPPORTED_ENTITY_TYPES = Sets.newHashSet(EntityType.NAMESPACE,
-                                                                                EntityType.APPLICATION,
-                                                                                EntityType.DATASET, EntityType.STREAM);
+  private static final Set<EntityType> SUPPORTED_ENTITY_TYPES = Sets.immutableEnumSet(EntityType.NAMESPACE,
+                                                                                      EntityType.APPLICATION,
+                                                                                      EntityType.DATASET,
+                                                                                      EntityType.STREAM);
 
-
-  void validate(NamespacedEntityId entityId, KerberosPrincipalId principalId) {
+  /**
+   * Validates the given {@link NamespacedEntityId} to be supported by the {@link OwnerStore}
+   * i.e. the entity can be associated with an owner.
+   * Validated the given {@link KerberosPrincipalId} to be valid i.e. it can be used to create a
+   * {@link org.apache.hadoop.security.authentication.util.KerberosName}.
+   * See {@link SecurityUtil#validateKerberosPrincipal(KerberosPrincipalId)}
+   *
+   * @param entityId {@link NamespacedEntityId} to be validated
+   * @param principalId {@link KerberosPrincipalId} to be validated
+   */
+  final void validate(NamespacedEntityId entityId, KerberosPrincipalId principalId) {
     validate(entityId);
     SecurityUtil.validateKerberosPrincipal(principalId);
   }
 
-  void validate(NamespacedEntityId entityId) {
+  /**
+   * Validates the given {@link NamespacedEntityId} to be supported by the {@link OwnerStore}
+   * i.e. the entity can be associated with an owner.
+   *
+   * @param entityId {@link NamespacedEntityId} to be validated
+   */
+  final void validate(NamespacedEntityId entityId) {
     if (!SUPPORTED_ENTITY_TYPES.contains(entityId.getEntityType())) {
       throw new IllegalArgumentException(String.format("The given entity '%s' is of unsupported types '%s'. " +
                                                          "Entity ownership is only supported for '%s'.",

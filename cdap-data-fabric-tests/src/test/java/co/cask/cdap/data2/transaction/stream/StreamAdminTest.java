@@ -37,6 +37,7 @@ import co.cask.cdap.proto.audit.AuditPayload;
 import co.cask.cdap.proto.audit.AuditType;
 import co.cask.cdap.proto.audit.payload.access.AccessPayload;
 import co.cask.cdap.proto.id.EntityId;
+import co.cask.cdap.proto.id.KerberosPrincipalId;
 import co.cask.cdap.proto.id.NamespaceId;
 import co.cask.cdap.proto.id.NamespacedEntityId;
 import co.cask.cdap.proto.id.ProgramId;
@@ -278,7 +279,8 @@ public abstract class StreamAdminTest {
 
     // updating stream owner should fail
     try {
-      streamAdmin.updateConfig(stream, new StreamProperties(1L, null, null, null, "user/somekdc.net"));
+      streamAdmin.updateConfig(stream, new StreamProperties(1L, null, null, null,
+                                                            new KerberosPrincipalId("user/somekdc.net")));
       Assert.fail();
     } catch (IllegalArgumentException e) {
       // expected

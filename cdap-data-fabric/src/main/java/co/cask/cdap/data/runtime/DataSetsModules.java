@@ -37,7 +37,6 @@ import co.cask.cdap.data2.registry.DefaultUsageRegistry;
 import co.cask.cdap.data2.registry.RuntimeUsageRegistry;
 import co.cask.cdap.data2.registry.UsageRegistry;
 import co.cask.cdap.store.DefaultOwnerStore;
-import co.cask.cdap.store.InMemoryOwnerStore;
 import com.google.inject.Module;
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
@@ -84,8 +83,8 @@ public class DataSetsModules extends RuntimeModule {
         bind(DatasetFramework.class).to(LineageWriterDatasetFramework.class);
         expose(DatasetFramework.class);
 
-        bind(InMemoryOwnerStore.class).in(Scopes.SINGLETON);
-        bind(OwnerStore.class).to(InMemoryOwnerStore.class);
+        bind(DefaultOwnerStore.class).in(Scopes.SINGLETON);
+        bind(OwnerStore.class).to(DefaultOwnerStore.class);
         expose(OwnerStore.class);
       }
     };

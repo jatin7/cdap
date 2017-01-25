@@ -16,7 +16,6 @@
 
 package co.cask.cdap.common.kerberos;
 
-import co.cask.cdap.api.annotation.Beta;
 import co.cask.cdap.common.AlreadyExistsException;
 import co.cask.cdap.proto.id.EntityId;
 import co.cask.cdap.proto.id.KerberosPrincipalId;
@@ -57,7 +56,6 @@ public interface OwnerStore {
    * @throws IllegalArgumentException if the given KerberosPrincipalId is not valid or the entity is not of
    * supported type.
    */
-  @Beta
   void add(NamespacedEntityId entityId, KerberosPrincipalId kerberosPrincipalId)
     throws IOException, AlreadyExistsException;
 
@@ -69,7 +67,6 @@ public interface OwnerStore {
    * @throws IOException if failed to get the store
    * @throws IllegalArgumentException if the given entity is not of supported type.
    */
-  @Beta
   @Nullable
   KerberosPrincipalId getOwner(NamespacedEntityId entityId) throws IOException;
 
@@ -81,7 +78,6 @@ public interface OwnerStore {
    * @throws IOException if failed to get the store
    * @throws IllegalArgumentException if the given entity is not of supported type.
    */
-  @Beta
   boolean exists(NamespacedEntityId entityId) throws IOException;
 
   /**
@@ -91,6 +87,5 @@ public interface OwnerStore {
    * @throws IOException if failed to get the owner store
    * @throws IllegalArgumentException if the given entity is not of supported type.
    */
-  @Beta
   void delete(NamespacedEntityId entityId) throws IOException;
 }

@@ -62,10 +62,12 @@ public class DefaultOwnerAdmin implements OwnerAdmin {
     String nsPrincipal;
     try {
       nsPrincipal = namespaceQueryAdmin.get(entityId.getNamespaceId()).getConfig().getPrincipal();
+      return nsPrincipal == null ? null : new KerberosPrincipalId(nsPrincipal);
+    } catch (IOException e) {
+      throw e;
     } catch (Exception e) {
       throw new IOException(e);
     }
-    return nsPrincipal == null ? null : new KerberosPrincipalId(nsPrincipal);
   }
 
   @Override

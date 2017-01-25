@@ -16,6 +16,7 @@
 package co.cask.cdap.proto;
 
 import co.cask.cdap.api.data.format.FormatSpecification;
+import co.cask.cdap.proto.id.KerberosPrincipalId;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Objects;
@@ -29,7 +30,7 @@ public class StreamProperties {
   private final Long ttl;
   private final FormatSpecification format;
   @SerializedName("owner.principal")
-  private final String ownerPrincipal;
+  private final KerberosPrincipalId ownerPrincipal;
 
   @SerializedName("notification.threshold.mb")
   private final Integer notificationThresholdMB;
@@ -45,7 +46,7 @@ public class StreamProperties {
   }
 
   public StreamProperties(Long ttl, FormatSpecification format, Integer notificationThresholdMB,
-                          @Nullable String description, @Nullable String ownerPrincipal) {
+                          @Nullable String description, @Nullable KerberosPrincipalId ownerPrincipal) {
     this.ttl = ttl;
     this.format = format;
     this.notificationThresholdMB = notificationThresholdMB;
@@ -84,10 +85,10 @@ public class StreamProperties {
   }
 
   /**
-   * @return The principal of the stream owner
+   * @return The {@link KerberosPrincipalId} of the stream owner
    */
   @Nullable
-  public String getOwnerPrincipal() {
+  public KerberosPrincipalId getOwnerPrincipal() {
     return ownerPrincipal;
   }
 
@@ -103,9 +104,9 @@ public class StreamProperties {
     StreamProperties that = (StreamProperties) o;
 
     return Objects.equals(ttl, that.ttl) &&
-      Objects.equals(format, that.format) &
-      Objects.equals(notificationThresholdMB, that.notificationThresholdMB) &
-      Objects.equals(description, that.description) &
+      Objects.equals(format, that.format) &&
+      Objects.equals(notificationThresholdMB, that.notificationThresholdMB) &&
+      Objects.equals(description, that.description) &&
       Objects.equals(ownerPrincipal, that.ownerPrincipal);
   }
 

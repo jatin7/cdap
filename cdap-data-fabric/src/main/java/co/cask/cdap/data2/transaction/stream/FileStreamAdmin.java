@@ -68,7 +68,6 @@ import co.cask.cdap.security.spi.authorization.PrivilegesManager;
 import co.cask.cdap.security.spi.authorization.UnauthorizedException;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -337,8 +336,7 @@ public class FileStreamAdmin implements StreamAdmin {
   public StreamProperties getProperties(StreamId streamId) throws Exception {
     // User should have any access on the stream to read its properties
     ensureAccess(streamId);
-    String ownerPrincipal = ownerAdmin.getOwner(streamId) == null ? null :
-      ownerAdmin.getOwner(streamId).getPrincipal();
+    KerberosPrincipalId ownerPrincipal = ownerAdmin.getOwner(streamId);
     StreamConfig config = getConfig(streamId);
     StreamSpecification spec = streamMetaStore.getStream(streamId);
     return new StreamProperties(config.getTTL(), config.getFormat(), config.getNotificationThresholdMB(),
@@ -358,9 +356,7 @@ public class FileStreamAdmin implements StreamAdmin {
     });
 
     Preconditions.checkArgument(streamLocation.isDirectory(), "Stream '%s' does not exist.", streamId);
-    boolean equals = Objects.equals(properties.getOwnerPrincipal(),
-                                    ownerAdmin.getOwner(streamId) == null ? null :
-                                      ownerAdmin.getOwner(streamId).getPrincipal());
+    boolean equals = Objects.equals(properties.getOwnerPrincipal(), ownerAdmin.getOwner(streamId));
     Preconditions.checkArgument(equals,
                                 String.format("Updating %s is not supported.", Constants.Security.OWNER_PRINCIPAL));
 
@@ -455,7 +451,11 @@ public class FileStreamAdmin implements StreamAdmin {
           int threshold = Integer.parseInt(properties.getProperty(
             Constants.Stream.NOTIFICATION_THRESHOLD, cConf.get(Constants.Stream.NOTIFICATION_THRESHOLD)));
           String description = properties.getProperty(Constants.Stream.DESCRIPTION);
-          String ownerPrincipal = properties.getProperty(Constants.Security.OWNER_PRINCIPAL);
+          KerberosPrincipalId ownerPrincipal = null;
+          if (properties.containsKey(Constants.Security.OWNER_PRINCIPAL)) {
+            ownerPrincipal = GSON.fromJson(properties.getProperty(Constants.Security.OWNER_PRINCIPAL),
+                                           KerberosPrincipalId.class);
+          }
           FormatSpecification formatSpec = null;
           if (properties.containsKey(Constants.Stream.FORMAT_SPECIFICATION)) {
             formatSpec = GSON.fromJson(properties.getProperty(Constants.Stream.FORMAT_SPECIFICATION),
@@ -477,8 +477,8 @@ public class FileStreamAdmin implements StreamAdmin {
           streamMetaStore.addStream(streamId, description);
           // If an owner was provided then store it in owner store.
           try {
-            if (!Strings.isNullOrEmpty(ownerPrincipal)) {
-              ownerAdmin.add(streamId, new KerberosPrincipalId(ownerPrincipal));
+            if (ownerPrincipal != null) {
+              ownerAdmin.add(streamId, ownerPrincipal);
             }
           } catch (Exception e) {
             // clean up from streamMetaStore
