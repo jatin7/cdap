@@ -20,7 +20,6 @@ import co.cask.cdap.common.AlreadyExistsException;
 import co.cask.cdap.common.kerberos.OwnerStore;
 import co.cask.cdap.proto.id.KerberosPrincipalId;
 import co.cask.cdap.proto.id.NamespaceId;
-import co.cask.cdap.proto.id.KerberosPrincipalId;
 import co.cask.cdap.proto.id.StreamId;
 import org.junit.Assert;
 import org.junit.Test;
