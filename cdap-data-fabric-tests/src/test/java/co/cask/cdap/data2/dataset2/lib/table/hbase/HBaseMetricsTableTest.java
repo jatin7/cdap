@@ -26,6 +26,8 @@ import co.cask.cdap.common.guice.DiscoveryRuntimeModule;
 import co.cask.cdap.common.guice.LocationRuntimeModule;
 import co.cask.cdap.common.guice.NamespaceClientUnitTestModule;
 import co.cask.cdap.common.guice.ZKClientModule;
+import co.cask.cdap.common.kerberos.DefaultOwnerAdmin;
+import co.cask.cdap.common.kerberos.OwnerAdmin;
 import co.cask.cdap.data.hbase.HBaseTestBase;
 import co.cask.cdap.data.hbase.HBaseTestFactory;
 import co.cask.cdap.data.runtime.DataFabricDistributedModule;
@@ -94,6 +96,7 @@ public class HBaseMetricsTableTest extends MetricsTableTest {
                                                @Override
                                                protected void configure() {
                                                  bind(UGIProvider.class).to(UnsupportedUGIProvider.class);
+                                                 bind(OwnerAdmin.class).to(DefaultOwnerAdmin.class);
                                                }
                                              });
 
