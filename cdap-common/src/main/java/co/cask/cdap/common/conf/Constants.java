@@ -110,6 +110,7 @@ public final class Constants {
    */
   public static final class HBase {
     public static final String AUTH_KEY_UPDATE_INTERVAL = "hbase.auth.key.update.interval";
+    public static final String MANAGED_COPROCESSORS = "managed.coprocessors";
   }
 
   /**

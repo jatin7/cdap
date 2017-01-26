@@ -80,6 +80,7 @@ public final class HBaseTableFactory implements TableFactory {
   private final ExecutorService scanExecutor;
   private final LocationFactory locationFactory;
   private final Map<TableId, HTableDescriptor> tableDescriptors;
+  private final boolean managedCoprocessors;
 
   @Inject
   HBaseTableFactory(CConfiguration cConf, Configuration hConf, HBaseTableUtil tableUtil,
@@ -89,6 +90,7 @@ public final class HBaseTableFactory implements TableFactory {
     this.tableUtil = tableUtil;
     this.locationFactory = locationFactory;
     this.tableDescriptors = new ConcurrentHashMap<>();
+    this.managedCoprocessors = cConf.getBoolean(Constants.HBase.MANAGED_COPROCESSORS);
 
     RejectedExecutionHandler callerRunsPolicy = new RejectedExecutionHandler() {
       @Override
@@ -377,7 +379,8 @@ public final class HBaseTableFactory implements TableFactory {
     if (jarFile == null) {
       throw new IOException("Failed to create coprocessor jar for " + coprocessor);
     }
-    tableDescriptor.addCoprocessor(coprocessor.getName(), new Path(jarFile.toURI().getPath()),
+    Path path = managedCoprocessors ? new Path(jarFile.toURI().getPath()) : null;
+    tableDescriptor.addCoprocessor(coprocessor.getName(), path,
                                    Coprocessor.PRIORITY_USER, null);
   }
 
